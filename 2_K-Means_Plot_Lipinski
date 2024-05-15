@@ -1,0 +1,110 @@
+from rdkit import Chem
+from rdkit.Chem import Descriptors
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+a = input("\nTo find the derivative of : ")
+b = float(input("Its molecular weight: "))
+# A Function to get user input for Lipinski's rule
+def get_lipinski_inputs():
+    mW = int(input("\nMW >= "))
+    Mw = int(input("MW <= "))
+    max_logp = float(input("LogP <= "))
+    max_hbd = int(input("HBD <= "))
+    max_hba = int(input("HBA <= "))
+    return mW, Mw, max_logp, max_hbd, max_hba
+
+# A Function to check if a molecule passes Lipinski's rule
+def passes_lipinski_rule(mol, mW, Mw, max_logp, max_hbd, max_hba):
+    mw = Descriptors.ExactMolWt(mol)
+    logp = Chem.Crippen.MolLogP(mol)
+    hbd = Descriptors.NumHDonors(mol)
+    hba = Descriptors.NumHAcceptors(mol)
+    return mw >= mW and mw <= Mw and logp <= max_logp and hbd <= max_hbd and hba <= max_hba
+
+# A Function to extract a molecule by its compound number from the input SDF file
+def extract_molecule(sdf_file_path, compound_number):
+    suppl = Chem.SDMolSupplier(sdf_file_path)
+    compound = next((mol for idx, mol in enumerate(suppl, start=1) if idx == compound_number), None)
+    return compound
+
+# Main function
+def main():
+    # Get the path to the SDF file with cluster assignments from user input (including the extension)
+    sdf_file_path = input("Enter the name of the SDF file with cluster assignments (including the extension): ")
+
+    # Get user input for Lipinski's rule
+    mW, Mw, max_logp, max_hbd, max_hba = get_lipinski_inputs()
+
+    # To Extract cluster labels, molecular weight, LogP, HBD, HBA, and compound numbers for molecules passing Lipinski's rule
+    cluster_labels = []
+    molecular_weights = []
+    logps = []
+    hbds = []
+    hbas = []
+    compound_numbers = []
+
+    suppl = Chem.SDMolSupplier(sdf_file_path)
+
+    for idx, mol in enumerate(suppl):
+        if mol is not None and passes_lipinski_rule(mol, mW, Mw, max_logp, max_hbd, max_hba):
+            cluster_labels.append(int(mol.GetProp("Cluster")))
+           
+            mw = Descriptors.ExactMolWt(mol)
+            logp = Chem.Crippen.MolLogP(mol)
+            hbd = Descriptors.NumHDonors(mol)
+            hba = Descriptors.NumHAcceptors(mol)
+
+            molecular_weights.append(mw)
+            logps.append(logp)
+            hbds.append(hbd)
+            hbas.append(hba)
+            compound_numbers.append(idx + 1)
+
+    # Creating DataFrame with the extracted data
+    data = pd.DataFrame({'Cluster': cluster_labels, 'MolecularWeight': molecular_weights, 'LogP': logps, 'HBD': hbds, 'HBA': hbas, 'CompoundNumber': compound_numbers})
+
+    # To Check if there are samples in the DataFrame before clustering to reduce error
+    if not data.empty:
+        # Choosing the Number of Clusters (adjustable)
+        num_clusters = 3
+
+        # Perform K-means Clustering (Set n_init to suppress the warning)
+        kmeans = KMeans(n_clusters=num_clusters, n_init=10, random_state=0)  # Set n_init to the desired value (e.g., 10)
+        kmeans.fit(data[['MolecularWeight', 'LogP', 'HBD', 'HBA']])
+
+        # To get Cluster Labels
+        cluster_labels = kmeans.labels_
+
+        # Adding cluster labels to the DataFrame
+        data['Cluster'] = cluster_labels
+
+        # Counting the number of compounds in each cluster
+        cluster_counts = data['Cluster'].value_counts()
+
+        # To Print cluster information
+        for cluster_label, count in cluster_counts.items():
+            print(f"Cluster {cluster_label}: {count} compounds")
+            cluster_data = data[data['Cluster'] == cluster_label]
+            print(cluster_data[['Cluster', 'MolecularWeight', 'LogP', 'HBD', 'HBA', 'CompoundNumber']])
+            print("\n")
+
+        # To Create a scatter plot of the clusters with compound numbers labeled
+        colors = ['r', 'g', 'b']  # Adjust colors as needed
+        for i, cluster_label in enumerate(data['Cluster'].unique()):
+            cluster_data = data[data['Cluster'] == cluster_label]
+            plt.scatter(cluster_data['MolecularWeight'], cluster_data['LogP'], label=f'Cluster {cluster_label} ({cluster_counts[cluster_label]} compounds)', c=colors[i])
+            for _, row in cluster_data.iterrows():
+                plt.annotate(row['CompoundNumber'], (row['MolecularWeight'], row['LogP']), textcoords="offset points", xytext=(0,5), ha='center', fontsize=8, color='black')
+
+        plt.xlabel('Molecular Weight')
+        plt.ylabel('LogP')
+        plt.title('K-means Clustering (Lipinski Filtered)')
+        plt.legend()
+        plt.show()
+    else:
+        print("No compounds passed Lipinski's rule.")
+
+if __name__ == "__main__":
+    main()
