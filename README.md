@@ -64,7 +64,9 @@ python 2_Kmeans_Plot_Lipinski.py clustered_molecules.sdf
 
 # Step 3: Extract and save a specific compound
 python 3_Extraction&Retrieval.py clustered_molecules.sdf
-'''
+
+```
+
 📌 Notes
 
 The pipeline is designed for educational and research purposes.
