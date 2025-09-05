@@ -67,7 +67,7 @@ python 3_Extraction&Retrieval.py clustered_molecules.sdf
 
 ---
 
-## 📌 Notes
+## **📌 Notes**
 
 The pipeline is designed for educational and research purposes.
 
@@ -77,6 +77,6 @@ Default number of clusters is 3, but this can be changed in the scripts.
 
 Code is lightweight and can be adapted for larger datasets or integrated into other drug discovery workflows.
 
-## ✨ Author
+## **✨ Author**
 
 Developed by Hridhya Nair
