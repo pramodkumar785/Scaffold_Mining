@@ -52,6 +52,19 @@ Install the following Python libraries before running the scripts:
 - Pillow (PIL)  
 
 ---
+
+## 🖥️ Example Usage
+
+```bash
+# Step 1: Assign clusters to molecules
+python 1_Kmeans_Clustering.py molecules.sdf
+
+# Step 2: Filter with Lipinski’s rule and plot clusters
+python 2_Kmeans_Plot_Lipinski.py clustered_molecules.sdf
+
+# Step 3: Extract and save a specific compound
+python 3_Extraction&Retrieval.py clustered_molecules.sdf
+'''
 📌 Notes
 
 The pipeline is designed for educational and research purposes.
@@ -65,18 +78,5 @@ Code is lightweight and can be adapted for larger datasets or integrated into ot
 ✨ Author
 
 Developed by Hridhya Nair
-
-## 🖥️ Example Usage
-
-```bash
-# Step 1: Assign clusters to molecules
-python 1_Kmeans_Clustering.py molecules.sdf
-
-# Step 2: Filter with Lipinski’s rule and plot clusters
-python 2_Kmeans_Plot_Lipinski.py clustered_molecules.sdf
-
-# Step 3: Extract and save a specific compound
-python 3_Extraction&Retrieval.py clustered_molecules.sdf
-
 
 
